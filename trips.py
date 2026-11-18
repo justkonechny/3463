@@ -2,6 +2,7 @@ import time
 import requests
 from google.transit import gtfs_realtime_pb2
 from database import get_connection
+from google.protobuf.message import DecodeError
 
 ROUTES = {'306'}
 MACHINE = 'justin-mac'
@@ -26,15 +27,28 @@ INSERT INTO polls (source, fetched_ts, machine, http_status, feed_ts,
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 """
 
+
+def fetch_feed(url, attempts=3, wait=15):
+    for attempt in range(attempts):
+        r = requests.get(url, timeout=30)
+        r.raise_for_status()
+        feed = gtfs_realtime_pb2.FeedMessage()
+        try:
+            feed.ParseFromString(r.content)
+            return r, feed
+        except DecodeError:
+            print(f"decode failed ({len(r.content)} bytes), attempt {attempt + 1}")
+            time.sleep(wait)
+    raise DecodeError(f"feed corrupt after {attempts} attempts")
+
+
 def poll_trips(conn):
+    r, feed = fetch_feed(TRIPS_URL)
+    feed_ts = feed.header.timestamp
+
     fetched_ts = int(time.time())
     service_date = time.strftime("%Y%m%d", time.localtime(fetched_ts - 4 * 3600))
-    r = requests.get(TRIPS_URL, timeout=30)
-    r.raise_for_status()
-    
-    feed = gtfs_realtime_pb2.FeedMessage() 
-    feed.ParseFromString(r.content)
-    feed_ts = feed.header.timestamp
+
 
     rows = []
     for entity in feed.entity:
