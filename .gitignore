@@ -2,4 +2,9 @@
 .env
 
 #the database
-.db
+data/
+*.db
+
+#pycahce
+__pycache__/
+*.pyc

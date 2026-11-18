@@ -49,8 +49,7 @@ CREATE TABLE IF NOT EXISTS polls (
     );
 """
 
-conn = sqlite3.connect(PATH)
-
-conn.executescript(SCHEMA)
-
-conn.commit()
+def get_connection():
+    conn = sqlite3.connect(PATH)
+    conn.executescript(SCHEMA)
+    return conn
