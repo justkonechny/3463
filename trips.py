@@ -4,7 +4,7 @@ from google.transit import gtfs_realtime_pb2
 from database import get_connection
 from google.protobuf.message import DecodeError
 
-ROUTES = {'306'}
+ROUTES = {'306', '153', '302', '201', '202', '304', '20', '9', '13'}
 MACHINE = 'justin-mac'
 
 TRIPS_URL = f"https://data.calgary.ca/download/gs4m-mdc2/application%2Foctet-stream"
@@ -28,7 +28,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 
-def fetch_feed(url, attempts=3, wait=15):
+def fetch_feed(url, attempts=7, wait=5):
     for attempt in range(attempts):
         r = requests.get(url, timeout=30)
         r.raise_for_status()
